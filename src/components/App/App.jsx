@@ -1,4 +1,4 @@
-import { MyName } from "../MyName/myName";
+import { MyName } from "../MyName/MyName";
 import './App.css'
 
 function App() {
