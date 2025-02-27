@@ -4,10 +4,13 @@ import { Footer } from "../Footer/Footer";
 import "./App.css";
 
 function App() {
+  const handleClick = () => {
+    alert("меня нажали");
+  };
   return (
     <main className="app">
       <Header />
-      <HomePage />
+      <HomePage click={handleClick} />
       <Footer />
     </main>
   );
