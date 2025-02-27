@@ -1,3 +1,4 @@
+import { Button } from "../Button";
 import "./Header.css";
 
 function Header() {
@@ -12,6 +13,14 @@ function Header() {
   return (
     <header className="container" style={style}>
       <h1>Заголовок</h1>
+      <Button
+        
+        btnStyles={{ height: 20, background: "red" }}
+      />
+      <Button
+        label="Авторизация"
+        btnStyles={{ height: 20, background: "green" }}
+      />
     </header>
   );
 }
