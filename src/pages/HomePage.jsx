@@ -1,6 +1,7 @@
 import { Button } from "../components/Button";
 import { UserList } from "../components/UserList";
-import programmer from "../assets/programmer.jpg";
+import TextComponent from "../components/TextComponent";
+import { TaskList } from "../components/TaskList";
 import "./HomePage.css";
 
 function HomePage() {
@@ -10,8 +11,8 @@ function HomePage() {
       <p>Добро пожаловать на наш сайт!</p>
       <Button />
       <UserList />
-      <img src={programmer} alt="Программист" />
-      <img src="images/laptop.jpg" alt="Ноутбук" />
+      <TextComponent />
+      <TaskList />
     </div>
   );
 }
