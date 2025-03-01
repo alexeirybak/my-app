@@ -1,13 +1,21 @@
-import { MyName } from "../MyName/MyName";
-import './App.css'
+import { useState } from "react";
+import Header from "../Header/Header";
+import HomePage from "../../pages/HomePage";
+import { ThemeToggle } from "../ThemeToggle";
+import { Footer } from "../Footer/Footer";
+import "./App.css";
 
 function App() {
+  const [clicks, setClicks] = useState(5);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [text, setText] = useState("Какой-то текст");
   return (
-    <div>
-      <h1>Привет, React!</h1>
-      <p>Это мой первый React-проект с Vite</p>
-      <MyName />
-    </div>
+    <main className="app">
+      <Header clicks={clicks} text={text} />
+      <HomePage clicks={clicks} setClicks={setClicks} />
+      <ThemeToggle isDarkMode={isDarkMode} setIsDarkMode={setIsDarkMode} />
+      <Footer isDarkMode={isDarkMode} text={text} setText={setText} />
+    </main>
   );
 }
 
