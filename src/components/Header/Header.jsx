@@ -1,17 +1,9 @@
 import "./Header.css";
 
 function Header() {
-  const style = {
-    color: "blue",
-    fontSize: "1rem",
-    width: "100%",
-    display: "flex",
-    justifyContent: "center",
-  };
-
   return (
-    <header className="container" style={style}>
-      <h1>Заголовок</h1>
+    <header className="container">
+      <h2>Заголовок</h2>
     </header>
   );
 }
