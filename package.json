@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "antd": "^5.24.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.2",
+    "react-scripts": "^5.0.1",
+    "react-select": "^5.10.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
