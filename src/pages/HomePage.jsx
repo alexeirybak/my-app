@@ -1,12 +1,16 @@
-//import { SignupForm } from "./SignupForm";
-import { CustomForm } from "./CustomForm";
+import {
+  EnhancedComponent1,
+  EnhancedComponent2,
+  EnhancedComponent3,
+} from "../components/EnhancedComponent";
 import "./HomePage.css";
 
 function HomePage() {
   return (
     <>
-      {/* <SignupForm /> */}
-      <CustomForm />
+      <EnhancedComponent1 />
+      <EnhancedComponent2 />
+      <EnhancedComponent3 />
     </>
   );
 }
