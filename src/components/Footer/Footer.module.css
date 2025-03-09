@@ -1,8 +1,0 @@
-.footer {
-  background-color: #360290; 
-  color: #999;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: background-color 0.3s, color 0.3s;
-}
