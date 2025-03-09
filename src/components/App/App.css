@@ -1,31 +1,3 @@
-/* Светлая тема (по умолчанию) */
-:root {
-  --background-color: #ffffff;
-  --text-color: #000000;
-  --header-background: #f0f0f0;
-  --button-background: #007bff;
-  --button-text-color: #ffffff;
-}
-
-/* Темная тема */
-[data-theme="dark"] {
-  --background-color: #333333;
-  --text-color: #ffffff;
-  --header-background: #222222;
-  --button-background: #ff5722;
-  --button-text-color: #000000;
-}
-
-.buttonSwitcher {
-  background-color: var(--button-background);
-  color: var(--button-text-color);
-  padding: 10px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 5px;
-}
-
 .app {
   height: 100vh;
   display: flex;
