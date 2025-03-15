@@ -1,0 +1,64 @@
+.input-container {
+  font-family: Arial, Helvetica, sans-serif;
+  position: relative; /* Позиционируем контейнер относительно */
+  margin-bottom: 20px; 
+}
+
+input {
+  margin-right: 10px;
+}
+.floating-input {
+  width: 200px;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid #ccc; 
+  border-radius: 5px;
+  outline: none; /* Убираем обводку при фокусе */
+  transition: border-color 0.8s ease; /* Плавное изменение цвета рамки */
+}
+
+.floating-input:focus {
+  border-color: #007bff; /* Цвет рамки при фокусе */
+}
+
+.floating-label {
+  position: absolute;
+  top: 50%;
+  left: 10px;
+  transform: translateY(-50%); /* Центрируем по вертикали */
+  font-size: 16px;
+  color: #999;
+  background: white;
+  padding: 0 5px;
+  transition: all 0.8s ease;
+  pointer-events: none; /* делает label "невидимым" для кликов, чтобы он не мешал взаимодействию с input. */
+}
+
+.floating-input:focus + .floating-label, /*Когда input в фокусе или содержит текст, label перемещается вверх и уменьшается*/
+  .floating-input:not(:placeholder-shown) + .floating-label {
+  /*:placeholder-shown — это псевдокласс, который применяется к элементу <input>, когда его placeholder виден, то есть, когда поле ввода пустое.
+  
+  :not(:placeholder-shown) — это отрицание. Оно применяется, когда поле ввода не пустое.
+  
+  + .floating-label:
+  
+  Символ + — это соседний селектор. Он выбирает элемент, который находится непосредственно после указанного элемента. В данном случае это label, который идёт сразу после input.*/
+  top: 0; /* Перемещаем текст вверх */
+  font-size: 12px; /* Уменьшаем размер текста */
+  color: #007bff; /* Цвет текста при фокусе */
+}
+
+button {
+  padding: 10px 20px; 
+  font-size: 16px; 
+  background-color: #007bff; 
+  color: white; 
+  border: none; 
+  border-radius: 5px; 
+  cursor: pointer; 
+  transition: background-color 0.3s ease; 
+}
+
+button:hover {
+  background-color: #0056b3; 
+}
