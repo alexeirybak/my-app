@@ -1,22 +1,15 @@
-import { ProductList } from "./ProductList";
+import { ItemList } from "./ItemList";
+import ParentComponent from "./ParentComponent";
+import UserComponent from "./userComponent";
 
 function App() {
-  const products = [];
-
-  for (let i = 0; i < 1000; i++) {
-    products.push({
-      id: i + 1,
-      name: `Продукт ${i + 1}`,
-    });
-  }
   return (
     <>
-      <ProductList products={products} />
+      {/* <ItemList /> */}
+      {/* <ParentComponent /> */}
+      <UserComponent />
     </>
   );
 }
 
 export default App;
-
-
-
