@@ -1,14 +1,17 @@
-import { ItemList } from "./ItemList";
-import ParentComponent from "./ParentComponent";
-import UserComponent from "./userComponent";
+import { UserContext } from "./contexts/UserContext";
+
+import Header from "./components/Header";
 
 function App() {
+  const user = {
+    name: "Иван",
+    email: "ivan@example.com",
+  };
+
   return (
-    <>
-      {/* <ItemList /> */}
-      {/* <ParentComponent /> */}
-      <UserComponent />
-    </>
+    <UserContext.Provider value={user}>
+      <Header />
+    </UserContext.Provider>
   );
 }
 
