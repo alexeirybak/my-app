@@ -1,7 +1,7 @@
 import { useUserContext } from "../contexts/UserContext";
 
 function UserDetails() {
-  const user = useUserContext();
+  const { user } = useUserContext();
 
   return (
     <div>
