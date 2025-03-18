@@ -1,13 +1,16 @@
-import { createContext, useContext } from "react";
+import { createContext, useState } from "react";
 
 export const UserContext = createContext(null);
 
-export function useUserContext() {
-  const user = useContext(UserContext);
+export function UserProvider({ children }) {
+  const [user, setUser] = useState({
+    name: "Иван",
+    email: "ivan@example.com",
+  });
 
-  if (!user) {
-    throw new Error("Данные пользователя не были получены");
-  }
+  const updateUser = (newUser) => {
+    setUser(newUser);
+  };
 
-  return user;
+  return <UserContext.Provider value={{user, updateUser}}>{children}</UserContext.Provider>;
 }
