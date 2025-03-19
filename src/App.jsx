@@ -1,14 +1,15 @@
-import { UserProvider } from "./contexts/UserContext";
-import { PlayerProvider } from "./contexts/PlayerContext";
-import Header from "./components/Header";
+import { useCounter } from "./useCounter";
 
 function App() {
+  const [count, increment, decrement, reset] = useCounter(10, 5);
+
   return (
-    <UserProvider>
-      <PlayerProvider>
-        <Header />
-      </PlayerProvider>
-    </UserProvider>
+    <>
+      <h1>Счетчик {count}</h1>
+      <button onClick={increment}>Прибавить</button>
+      <button onClick={decrement}>Убавить</button>
+      <button onClick={reset}>Сбросить</button>
+    </>
   );
 }
 
