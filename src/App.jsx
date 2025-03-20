@@ -1,16 +1,41 @@
-import { useCounter } from "./useCounter";
+import useForm from "./hooks/useForm";
+import { LoginForm } from "./LoginForm";
+import { RegisterForm } from "./RegisterForm";
+import { ProfileForm } from "./ProfileForm";
 
-function App() {
-  const [count, increment, decrement, reset] = useCounter(10, 5);
+const App = () => {
+  const loginData = useForm({});
+  const registerData = useForm({});
+  const profileData = useForm({});
+
+  const handleSubmit = (e, formType) => {
+    e.preventDefault();
+    if (formType === "login") {
+      console.log("Данные авторизации", loginData.formData);
+    } else if (formType === "password") {
+      console.log("Данные регистрации", loginData.formData);
+    } else formType === "";
+    {
+      console.log("Иные данные", profileData.formData);
+    }
+  };
 
   return (
-    <>
-      <h1>Счетчик {count}</h1>
-      <button onClick={increment}>Прибавить</button>
-      <button onClick={decrement}>Убавить</button>
-      <button onClick={reset}>Сбросить</button>
-    </>
+    <div>
+      <h1>Авторизация</h1>
+      <LoginForm
+        {...loginData}
+        handleSubmit={(e) => handleSubmit(e, "login")}
+      />
+      <h1>Регистрация</h1>
+      <RegisterForm
+        {...registerData}
+        handleSubmit={(e) => handleSubmit(e, "password")}
+      />
+      <p>---------------</p>
+      <ProfileForm {...profileData} handleSubmit={(e) => handleSubmit(e, "")} />
+    </div>
   );
-}
+};
 
 export default App;
