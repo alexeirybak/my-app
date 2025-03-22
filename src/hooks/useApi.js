@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
+import { useDebugValue } from "react";
 
 const useApi = (baseUrl) => {
   const [data, setData] = useState(null);
@@ -18,6 +19,7 @@ const useApi = (baseUrl) => {
       setLoading(true);
       try {
         const response = await api[method](endpoint, body);
+        console.log(response.data);
         setData(response.data);
       } catch (error) {
         setError(error);
@@ -52,6 +54,16 @@ const useApi = (baseUrl) => {
     async (endpoint) => request("delete", endpoint),
     [request]
   );
+
+  useDebugValue({ data, error });
+
+  // useDebugValue(
+  //   { data, error },
+  //   ({ data, error }) =>
+  //     `Данные: ${data ? "Загружено" : "Загружается"}, Ошибка ${
+  //       error ? error.message : "Нет ошибок"
+  //     }`
+  // );
 
   return { data, loading, error, get, post, put, patch, remove };
 };
