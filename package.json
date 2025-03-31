@@ -10,9 +10,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
     "@tailwindcss/vite": "^4.0.13",
+    "@tanstack/react-query": "^5.70.0",
     "react": "^19.0.0",
+    "react-dnd": "^16.0.1",
+    "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "^19.0.0",
+    "styled-components": "^6.1.16",
     "tailwindcss": "^4.0.13"
   },
   "devDependencies": {
