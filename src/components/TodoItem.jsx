@@ -1,7 +1,12 @@
 import { useState } from "react";
 
-export const TodoItem = ({ todo, onDelete }) => {
+export const TodoItem = ({ todo, onDelete, onToggleComplete }) => {
   const [isCompleted, setIsCompleted] = useState(false);
+
+  const handleToggle = () => {
+    setIsCompleted(!isCompleted);
+    onToggleComplete(todo.id);
+  };
   return (
     <div
       className="group flex items-center 
@@ -9,7 +14,7 @@ export const TodoItem = ({ todo, onDelete }) => {
     >
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setIsCompleted(!isCompleted)}
+          onClick={handleToggle}
           className={`p-1 rounded-full border-2 cursor-pointer ${
             isCompleted
               ? "border-green-500 bg-green-500"
