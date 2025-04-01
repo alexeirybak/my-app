@@ -82,12 +82,22 @@ function App() {
       completed: !todoToUpdate.completed,
     };
 
-    const updatedTodos = todos.map((todo) => {
-      todo.id === id ? updatedTodo : todo;
-    });
+    const updatedTodos = todos.map((todo) =>
+      todo.id === id ? updatedTodo : todo
+    );
 
-    setTodos(updatedTodo);
+    setTodos(updatedTodos);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos));
+
+    try {
+      await fetch(`${API_URL}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedTodo),
+      });
+    } catch (error) {
+      console.error("Ошибка обновления статуса задачи:", error);
+    }
   };
 
   return (

@@ -1,10 +1,5 @@
-import { useState } from "react";
-
 export const TodoItem = ({ todo, onDelete, onToggleComplete }) => {
-  const [isCompleted, setIsCompleted] = useState(false);
-
   const handleToggle = () => {
-    setIsCompleted(!isCompleted);
     onToggleComplete(todo.id);
   };
   return (
@@ -16,7 +11,7 @@ export const TodoItem = ({ todo, onDelete, onToggleComplete }) => {
         <button
           onClick={handleToggle}
           className={`p-1 rounded-full border-2 cursor-pointer ${
-            isCompleted
+            todo.completed
               ? "border-green-500 bg-green-500"
               : "border-gray-300 hover:border-gray-400"
           } transition-colors duration-300`}
@@ -24,7 +19,7 @@ export const TodoItem = ({ todo, onDelete, onToggleComplete }) => {
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className={`h-4 w-4 ${
-              isCompleted ? "text-white" : "text-transparent"
+              todo.completed ? "text-white" : "text-transparent"
             }`}
             fill="none"
             viewBox="0 0 24 24"
@@ -40,13 +35,33 @@ export const TodoItem = ({ todo, onDelete, onToggleComplete }) => {
         </button>
         <span
           className={`text-1 ${
-            isCompleted
+            todo.completed
               ? "line-through text-gray-400"
               : "text-gray-700 dark:text-gray-300"
           }`}
         >
           {todo.text}
         </span>
+        {todo.deadline && (
+          <span
+            className={`text-xs ${
+              todo.completed
+                ? "text-gray-400"
+                : new Date(todo.deadline) < new Date()
+                ? "text-red-500"
+                : "text-gray-500"
+            }`}
+          >
+            Крайний срок:{" "}
+            {new Date(todo.deadline).toLocaleString("ru-RU", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        )}
       </div>
       <button
         onClick={() => onDelete(todo.id)}
