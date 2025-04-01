@@ -10,7 +10,7 @@ export const TodoItem = ({ todo, onDelete }) => {
       <div className="flex items-center gap-3">
         <button
           onClick={() => setIsCompleted(!isCompleted)}
-          className={`p-1 rounded-full border-2 ${
+          className={`p-1 rounded-full border-2 cursor-pointer ${
             isCompleted
               ? "border-green-500 bg-green-500"
               : "border-gray-300 hover:border-gray-400"
@@ -45,7 +45,7 @@ export const TodoItem = ({ todo, onDelete }) => {
       </div>
       <button
         onClick={() => onDelete(todo.id)}
-        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all duration-300"
+        className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-all duration-300 cursor-pointer"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
