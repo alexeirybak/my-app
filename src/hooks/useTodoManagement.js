@@ -14,15 +14,25 @@ export const useTodoManagement = () => {
         localStorage.getItem(LOCAL_STORAGE_KEY) || "[]"
       );
 
-      setTodos(savedTodos);
+      // Сортируем задачи по order
+      const sortedSavedTodos = [...savedTodos].sort(
+        (a, b) => a.order - b.order
+      );
+      setTodos(sortedSavedTodos);
 
       try {
         const response = await fetch(API_URL);
-
         if (response.ok) {
           const serverTodos = await response.json();
-          setTodos(serverTodos);
-          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(serverTodos));
+          // Сортируем и серверные задачи
+          const sortedServerTodos = [...serverTodos].sort(
+            (a, b) => a.order - b.order
+          );
+          setTodos(sortedServerTodos);
+          localStorage.setItem(
+            LOCAL_STORAGE_KEY,
+            JSON.stringify(sortedServerTodos)
+          );
         }
       } catch (error) {
         console.error("Ошибка загрузки данных:", error);
@@ -32,13 +42,17 @@ export const useTodoManagement = () => {
   }, []);
 
   const onAdd = async (text, deadline) => {
+    // Берем максимальный order + 1, а не просто длину массива
+    const maxOrder =
+      todos.length > 0 ? Math.max(...todos.map((t) => t.order)) : 0;
+
     const newTodo = {
       id: `temp_${Date.now()}`,
       text,
       completed: false,
       createdAt: new Date().toISOString(),
       deadline: deadline || null,
-      order: todos.length + 1,
+      order: maxOrder + 1, // Используем maxOrder вместо todos.length
     };
 
     const updatedTodos = [...todos, newTodo];
@@ -129,15 +143,58 @@ export const useTodoManagement = () => {
   };
 
   const handleDelete = async (id) => {
-    const previousTodos = todos;
-    const updatedTodos = todos.filter((todo) => todo.id !== id);
-    setTodos(updatedTodos);
+    // Создаем копию текущих задач
+    const previousTodos = [...todos];
 
     try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos));
+      // 1. Удаляем задачу локально
+      const updatedTodos = todos.filter((todo) => todo.id !== id);
+
+      // 2. Обновляем порядок оставшихся задач
+      const reorderedTodos = updatedTodos.map((todo, index) => ({
+        ...todo,
+        order: index + 1,
+      }));
+
+      // 3. Сначала обновляем состояние
+      setTodos(reorderedTodos);
+
+      // 4. Отправляем DELETE-запрос на сервер
+      const deleteResponse = await fetch(`${API_URL}/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!deleteResponse.ok) throw new Error("Delete failed");
+
+      //5. Обновляем порядок на сервере для остальных задач
+      await Promise.all(
+        reorderedTodos.map((todo) =>
+          fetch(`${API_URL}/${todo.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order: todo.order }),
+          })
+        )
+      );
+
+      // for (const todo of reorderedTodos) {
+      //   try {
+      //     await fetch(`${API_URL}/${todo.id}`, {
+      //       method: "PUT",
+      //       headers: { "Content-Type": "application/json" },
+      //       body: JSON.stringify({ order: todo.order }),
+      //     });
+      //   } catch (error) {
+      //     console.error(`Ошибка при обновлении задачи ${todo.id}:`, error);
+      //     // Можно продолжить или прервать цикл
+      //   }
+      // }
+
+      // 6. Сохраняем в localStorage
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reorderedTodos));
     } catch (error) {
       console.error("Ошибка удаления:", error);
+      // Восстанавливаем предыдущее состояние при ошибке
       setTodos(previousTodos);
     }
   };
@@ -156,7 +213,16 @@ export const useTodoManagement = () => {
       .filter((t) => t.completed)
       .map((t) => t.id);
 
-    setTodos(originalTodos.filter((todo) => !todo.completed));
+    // Создаем обновленный список ДО удаления
+    const updatedTodos = originalTodos.filter((todo) => !todo.completed);
+
+    // Обновляем порядок в оставшихся задачах
+    const reorderedTodos = updatedTodos.map((todo, index) => ({
+      ...todo,
+      order: index + 1,
+    }));
+
+    setTodos(reorderedTodos);
 
     const failedIds = [];
 
@@ -170,16 +236,61 @@ export const useTodoManagement = () => {
     }
 
     if (failedIds.length > 0) {
-      setTodos(
-        originalTodos.filter(
-          (todo) => !todo.completed || failedIds.includes(todo.id)
-        )
-      );
+      // Восстанавливаем только неудаленные задачи
+      setTodos([
+        ...reorderedTodos,
+        ...originalTodos.filter(
+          (todo) => todo.completed && failedIds.includes(todo.id)
+        ),
+      ]);
     }
 
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(reorderedTodos));
     setIsDeletingCompleted(false);
   };
+
+  const onReorder = async (activeId, overId) => {
+    if (!overId) return;
+
+    try {
+      const activeIndex = todos.findIndex((todo) => todo.id === activeId);
+      const overIndex = todos.findIndex((todo) => todo.id === overId);
+
+      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+        return;
+      }
+
+      const newTodos = [...todos];
+      const [movedTodo] = newTodos.splice(activeIndex, 1);
+      newTodos.splice(overIndex, 0, movedTodo);
+
+      // Обновляем порядок ВСЕХ элементов, а не только перемещаемого
+      const updatedTodos = newTodos.map((todo, index) => ({
+        ...todo,
+        order: index + 1,
+      }));
+
+      setTodos(updatedTodos);
+
+      // Сохраняем только измененный порядок
+      await Promise.all(
+        updatedTodos.map((todo) =>
+          fetch(`${API_URL}/${todo.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ order: todo.order }),
+          })
+        )
+      );
+
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTodos));
+    } catch (error) {
+      console.error("Reorder error:", error);
+      // Можно добавить восстановление предыдущего состояния при ошибке
+      setTodos(todos);
+    }
+  };
+
   return {
     todos,
     setTodos,
@@ -194,5 +305,6 @@ export const useTodoManagement = () => {
     handleDeleteCompleted,
     confirmDeleteCompleted,
     hasCompletedTodos,
+    onReorder,
   };
 };
