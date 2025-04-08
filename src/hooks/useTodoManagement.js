@@ -5,6 +5,7 @@ import { useTodoHelpers } from "./useTodoHelpers.js";
 import { useTodoActions } from "./useTodoActions.js";
 
 import { PENDING_SYNC_KEY } from "../constants/todos";
+import { LOCAL_STORAGE_KEY } from "../constants/todos";
 
 export const useTodoManagement = () => {
   const [todos, setTodos] = useState([]);
@@ -78,12 +79,12 @@ export const useTodoManagement = () => {
           const serverTodos = await fetchTodos();
           newTodos = sortedSavedTodos(serverTodos);
           setTodos(newTodos);
-          saveToLocalStorage(newTodos);
+          saveToLocalStorage(LOCAL_STORAGE_KEY, newTodos);
         }
 
         setPendingSync(failedSyncs);
-        saveToLocalStorage(newTodos);
-        localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(failedSyncs));
+        saveToLocalStorage(LOCAL_STORAGE_KEY,newTodos);
+        saveToLocalStorage(PENDING_SYNC_KEY, failedSyncs);
       } catch (error) {
         console.error("Критическая ошибка синхронизации", error);
       }
@@ -101,10 +102,11 @@ export const useTodoManagement = () => {
   useEffect(() => {
     const loadInitialData = async () => {
       // Загружаем из localStorage
-      const savedTodos = sortedSavedTodos(loadFromLocalStorage());
-      const savedPendingSync = JSON.parse(
-        localStorage.getItem(PENDING_SYNC_KEY) || "[]"
+      const savedTodos = sortedSavedTodos(
+        loadFromLocalStorage(LOCAL_STORAGE_KEY)
       );
+      const savedPendingSync = loadFromLocalStorage(PENDING_SYNC_KEY);
+
       setTodos(savedTodos);
 
       // Если online, загружаем с сервера
@@ -113,7 +115,7 @@ export const useTodoManagement = () => {
           const serverTodos = await fetchTodos();
           const sortedServerTodos = sortedSavedTodos(serverTodos);
           setTodos(sortedServerTodos);
-          saveToLocalStorage(sortedServerTodos);
+          saveToLocalStorage(LOCAL_STORAGE_KEY, sortedServerTodos);
 
           // Синхронизируем только если есть ожидающие изменения
           if (savedPendingSync.length > 0) {
