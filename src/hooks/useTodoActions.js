@@ -45,7 +45,6 @@ export const useTodoActions = ({
     addPendingChange({
       type: "ADD",
       data: newTodo,
-      tempId: newTodo.id,
     });
   };
 

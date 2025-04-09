@@ -157,7 +157,6 @@ export const useTodoManagement = () => {
       }
     };
     loadInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]); // Не забываем ставить зависимость
 
   //Слушатель изменения состояния сети
