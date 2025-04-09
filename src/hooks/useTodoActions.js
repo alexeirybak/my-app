@@ -102,7 +102,7 @@ export const useTodoActions = ({
     addPendingChange({
       type: "TOGGLE",
       id,
-      completed: updatedTodo.completed,
+      data: updatedTodo,
     });
   };
 

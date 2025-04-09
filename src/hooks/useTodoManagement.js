@@ -70,12 +70,11 @@ export const useTodoManagement = () => {
                   await updateTodo(
                     change.id,
                     change.type === "TOGGLE"
-                      ? { completed: change.completed }
+                      ? { completed: change.data.completed } // берем completed из change.data
                       : change.data
                   );
                   successfulSyncs.push(change);
                 } else {
-                  // Если задачи нет на сервере, удаляем её из локального хранилища
                   newTodos = newTodos.filter((t) => t.id !== change.id);
                   failedSyncs.push(change);
                 }
