@@ -1,13 +1,13 @@
 import { LOCAL_STORAGE_KEY } from "../constants/todos";
 
 export const useLocalStorage = () => {
-  const loadFromLocalStorage = () => {
-    const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+  const loadFromLocalStorage = (key) => {
+    const data = localStorage.getItem(key);
     return data ? JSON.parse(data) : [];
   };
 
-  const saveToLocalStorage = (todos) => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
+  const saveToLocalStorage = (key, value) => {
+    localStorage.setItem(key, JSON.stringify(value));
   };
 
   return {loadFromLocalStorage, saveToLocalStorage}
