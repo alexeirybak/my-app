@@ -6,15 +6,15 @@ import { useTodoActions } from "./useTodoActions.js";
 
 import { PENDING_SYNC_KEY } from "../constants/todos";
 import { LOCAL_STORAGE_KEY } from "../constants/todos";
-import { useSyncTodoContext } from "../contexts/SyncTodoContext.jsx";
 
 export const useTodoManagement = () => {
   const [todos, setTodos] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
   const [isDeletingCompleted, setIsDeletingCompleted] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [pendingSync, setPendingSync] = useState([]);
   const { loadFromLocalStorage, saveToLocalStorage } = useLocalStorage();
   const { fetchTodos, createTodo, updateTodo, deleteTodo } = useTodoApi();
-  const {isOnline, setPendingSync} = useSyncTodoContext();
 
   const {
     createNewTodo,
@@ -23,91 +23,86 @@ export const useTodoManagement = () => {
     updateTodoData,
   } = useTodoHelpers();
 
-  const syncPendingChanges = useCallback(
-    async (changes, currentTodos) => {
-      // Логика синхронизации
-      if (!changes || changes.length === 0) return;
+  const syncPendingChanges = useCallback(async (changes, currentTodos) => {
+    // Логика синхронизации
+    if (!changes || changes.length === 0) return;
+    try {
+      let newTodos = [...currentTodos];
+      const failedSyncs = [];
+      const successfulSyncs = [];
+      // Сначала получаем актуальный список с сервера
+      let serverTodos = [];
+
       try {
-        let newTodos = [...currentTodos];
-        const failedSyncs = [];
-        const successfulSyncs = [];
-        // Сначала получаем актуальный список с сервера
-        let serverTodos = [];
-
-        try {
-          serverTodos = await fetchTodos();
-        } catch (error) {
-          console.error("Не удалось получить задачи с сервера", error);
-          setPendingSync(changes);
-          return;
-        }
-
-        for (const change of changes) {
-          try {
-            const serverTodoExists = serverTodos.some(
-              (t) => t.id === change.id
-            );
-
-            switch (change.type) {
-              case "ADD": {
-                if (!serverTodos.some((t) => t.id === change.data.id)) {
-                  const createdTodo = await createTodo(change.data);
-                  newTodos = newTodos.map((t) =>
-                    t.id === change.data.id ? createdTodo : t
-                  );
-                  successfulSyncs.push(change);
-                } else {
-                  successfulSyncs.push(change);
-                }
-                break;
-              }
-
-              case "UPDATE":
-              case "TOGGLE": {
-                if (serverTodoExists) {
-                  await updateTodo(
-                    change.id,
-                    change.type === "TOGGLE"
-                      ? { completed: change.data.completed }
-                      : change.data
-                  );
-                  successfulSyncs.push(change);
-                } else {
-                  newTodos = newTodos.filter((t) => t.id !== change.id);
-                  failedSyncs.push(change);
-                }
-                break;
-              }
-
-              case "DELETE": {
-                if (serverTodoExists) {
-                  await deleteTodo(change.id);
-                }
-                newTodos = newTodos.filter((t) => t.id !== change.id);
-                successfulSyncs.push(change);
-                break;
-              }
-            }
-          } catch (error) {
-            console.error("Ошибка синхронизации", error);
-            failedSyncs.push(change);
-          }
-        }
-
-        if (successfulSyncs.length > 0) {
-          try {
-            const updatedServerTodos = await fetchTodos();
-            newTodos = sortedSavedTodos(updatedServerTodos);
-          } catch (error) {
-            console.error("Не удалось обновить список задач", error);
-          }
-        }
+        serverTodos = await fetchTodos();
       } catch (error) {
-        console.error("Критическая ошибка синхронизации", error);
+        console.error("Не удалось получить задачи с сервера", error);
+        setPendingSync(changes);
+        return;
       }
-    },
-    [createTodo, deleteTodo, fetchTodos, updateTodo, sortedSavedTodos]
-  );
+
+      for (const change of changes) {
+        try {
+          const serverTodoExists = serverTodos.some((t) => t.id === change.id);
+
+          switch (change.type) {
+            case "ADD": {
+              if (!serverTodos.some((t) => t.id === change.data.id)) {
+                const createdTodo = await createTodo(change.data);
+                newTodos = newTodos.map((t) =>
+                  t.id === change.data.id ? createdTodo : t
+                );
+                successfulSyncs.push(change);
+              } else {
+                successfulSyncs.push(change);
+              }
+              break;
+            }
+
+            case "UPDATE":
+            case "TOGGLE": {
+              if (serverTodoExists) {
+                await updateTodo(
+                  change.id,
+                  change.type === "TOGGLE"
+                    ? { completed: change.data.completed }
+                    : change.data
+                );
+                successfulSyncs.push(change);
+              } else {
+                newTodos = newTodos.filter((t) => t.id !== change.id);
+                failedSyncs.push(change);
+              }
+              break;
+            }
+
+            case "DELETE": {
+              if (serverTodoExists) {
+                await deleteTodo(change.id);
+              }
+              newTodos = newTodos.filter((t) => t.id !== change.id);
+              successfulSyncs.push(change);
+              break;
+            }
+          }
+        } catch (error) {
+          console.error("Ошибка синхронизации", error);
+          failedSyncs.push(change);
+        }
+      }
+
+      if (successfulSyncs.length > 0) {
+        try {
+          const updatedServerTodos = await fetchTodos();
+          newTodos = sortedSavedTodos(updatedServerTodos);
+        } catch (error) {
+          console.error("Не удалось обновить список задач", error);
+        }
+      }
+    } catch (error) {
+      console.error("Критическая ошибка синхронизации", error);
+    }
+  }, [createTodo, deleteTodo, fetchTodos, updateTodo, sortedSavedTodos]);
 
   useEffect(() => {
     const loadInitialData = async () => {
@@ -141,6 +136,22 @@ export const useTodoManagement = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]);
 
+  //Слушатель изменения состояния сети
+  useEffect(() => {
+    const handleOnline = async () => {
+      setIsOnline(true);
+    };
+
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [pendingSync, syncPendingChanges, todos]);
 
   const actions = useTodoActions({
     todos,
