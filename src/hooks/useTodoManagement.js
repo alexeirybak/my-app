@@ -3,17 +3,18 @@ import { useLocalStorage } from "./useLocalStorage.js";
 import { useTodoApi } from "./useTodoApi.js";
 import { useTodoHelpers } from "./useTodoHelpers.js";
 import { useTodoActions } from "./useTodoActions.js";
+
 import { PENDING_SYNC_KEY } from "../constants/todos";
 import { LOCAL_STORAGE_KEY } from "../constants/todos";
+import { useSyncTodoContext } from "../contexts/SyncTodoContext.jsx";
 
 export const useTodoManagement = () => {
   const [todos, setTodos] = useState([]);
   const [deletingId, setDeletingId] = useState(null);
   const [isDeletingCompleted, setIsDeletingCompleted] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [pendingSync, setPendingSync] = useState([]);
   const { loadFromLocalStorage, saveToLocalStorage } = useLocalStorage();
   const { fetchTodos, createTodo, updateTodo, deleteTodo } = useTodoApi();
+  const {isOnline, setPendingSync} = useSyncTodoContext();
 
   const {
     createNewTodo,
@@ -105,7 +106,7 @@ export const useTodoManagement = () => {
         console.error("Критическая ошибка синхронизации", error);
       }
     },
-    [createTodo, deleteTodo, fetchTodos, sortedSavedTodos, updateTodo]
+    [createTodo, deleteTodo, fetchTodos, updateTodo, sortedSavedTodos]
   );
 
   useEffect(() => {
@@ -137,24 +138,9 @@ export const useTodoManagement = () => {
       }
     };
     loadInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnline]);
 
-  //Слушатель изменения состояния сети
-  useEffect(() => {
-    const handleOnline = async () => {
-      setIsOnline(true);
-    };
-
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, [pendingSync, syncPendingChanges, todos]);
 
   const actions = useTodoActions({
     todos,

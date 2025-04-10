@@ -23,7 +23,7 @@ function App() {
     handleDeleteCompleted,
     confirmDeleteCompleted,
     hasCompletedTodos,
-    onReorder
+    onReorder,
   } = useTodoManagement();
 
   return (
