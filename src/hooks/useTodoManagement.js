@@ -3,7 +3,6 @@ import { useLocalStorage } from "./useLocalStorage.js";
 import { useTodoApi } from "./useTodoApi.js";
 import { useTodoHelpers } from "./useTodoHelpers.js";
 import { useTodoActions } from "./useTodoActions.js";
-
 import { PENDING_SYNC_KEY } from "../constants/todos";
 import { LOCAL_STORAGE_KEY } from "../constants/todos";
 
@@ -25,20 +24,19 @@ export const useTodoManagement = () => {
 
   const syncPendingChanges = useCallback(
     async (changes, currentTodos) => {
+      // Логика синхронизации
       if (!changes || changes.length === 0) return;
-
       try {
         let newTodos = [...currentTodos];
         const failedSyncs = [];
         const successfulSyncs = [];
-
         // Сначала получаем актуальный список с сервера
         let serverTodos = [];
+
         try {
           serverTodos = await fetchTodos();
         } catch (error) {
           console.error("Не удалось получить задачи с сервера", error);
-          // Если не удалось получить задачи, помечаем все изменения как неудачные
           setPendingSync(changes);
           return;
         }
@@ -51,7 +49,6 @@ export const useTodoManagement = () => {
 
             switch (change.type) {
               case "ADD": {
-                // Для добавления проверяем, нет ли уже такой задачи на сервере
                 if (!serverTodos.some((t) => t.id === change.data.id)) {
                   const createdTodo = await createTodo(change.data);
                   newTodos = newTodos.map((t) =>
@@ -59,18 +56,18 @@ export const useTodoManagement = () => {
                   );
                   successfulSyncs.push(change);
                 } else {
-                  // Если задача уже есть на сервере, считаем синхронизацию успешной
                   successfulSyncs.push(change);
                 }
                 break;
               }
+
               case "UPDATE":
               case "TOGGLE": {
                 if (serverTodoExists) {
                   await updateTodo(
                     change.id,
                     change.type === "TOGGLE"
-                      ? { completed: change.data.completed } // берем completed из change.data
+                      ? { completed: change.data.completed }
                       : change.data
                   );
                   successfulSyncs.push(change);
@@ -80,25 +77,22 @@ export const useTodoManagement = () => {
                 }
                 break;
               }
+
               case "DELETE": {
                 if (serverTodoExists) {
                   await deleteTodo(change.id);
                 }
-                // Удаляем задачу в любом случае, даже если её нет на сервере
                 newTodos = newTodos.filter((t) => t.id !== change.id);
                 successfulSyncs.push(change);
                 break;
               }
-              default:
-                break;
             }
           } catch (error) {
-            console.error("Ошибка синхронизации:", error);
+            console.error("Ошибка синхронизации", error);
             failedSyncs.push(change);
           }
         }
 
-        // Обновляем локальное состояние
         if (successfulSyncs.length > 0) {
           try {
             const updatedServerTodos = await fetchTodos();
@@ -107,36 +101,24 @@ export const useTodoManagement = () => {
             console.error("Не удалось обновить список задач", error);
           }
         }
-
-        setTodos(newTodos);
-        setPendingSync(failedSyncs);
-        saveToLocalStorage(LOCAL_STORAGE_KEY, newTodos);
-        saveToLocalStorage(PENDING_SYNC_KEY, failedSyncs);
       } catch (error) {
         console.error("Критическая ошибка синхронизации", error);
       }
     },
-    [
-      saveToLocalStorage,
-      createTodo,
-      updateTodo,
-      deleteTodo,
-      fetchTodos,
-      sortedSavedTodos,
-    ]
+    [createTodo, deleteTodo, fetchTodos, sortedSavedTodos, updateTodo]
   );
 
   useEffect(() => {
     const loadInitialData = async () => {
-      // Загружаем из localStorage
       const savedTodos = sortedSavedTodos(
         loadFromLocalStorage(LOCAL_STORAGE_KEY)
       );
+
+      // Еще один localStorage с данными
       const savedPendingSync = loadFromLocalStorage(PENDING_SYNC_KEY);
 
       setTodos(savedTodos);
 
-      // Если online, загружаем с сервера
       if (isOnline) {
         try {
           const serverTodos = await fetchTodos();
@@ -144,7 +126,6 @@ export const useTodoManagement = () => {
           setTodos(sortedServerTodos);
           saveToLocalStorage(LOCAL_STORAGE_KEY, sortedServerTodos);
 
-          // Синхронизируем только если есть ожидающие изменения
           if (savedPendingSync.length > 0) {
             await syncPendingChanges(savedPendingSync, sortedServerTodos);
           }
@@ -156,7 +137,7 @@ export const useTodoManagement = () => {
       }
     };
     loadInitialData();
-  }, [isOnline]); // Не забываем ставить зависимость
+  }, [isOnline]);
 
   //Слушатель изменения состояния сети
   useEffect(() => {

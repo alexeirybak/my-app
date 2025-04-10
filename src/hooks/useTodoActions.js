@@ -1,6 +1,5 @@
 import { LOCAL_STORAGE_KEY } from "../constants/todos";
 import { PENDING_SYNC_KEY } from "../constants/todos";
-
 export const useTodoActions = ({
   todos,
   setTodos,
@@ -25,8 +24,11 @@ export const useTodoActions = ({
 
   const onAdd = async (text, deadline) => {
     const newTodo = createNewTodo(text, deadline, todos.length + 1);
+
     const updatedTodos = [...todos, newTodo];
+
     setTodos(updatedTodos);
+
     saveToLocalStorage(LOCAL_STORAGE_KEY, updatedTodos);
 
     if (isOnline) {
@@ -37,7 +39,7 @@ export const useTodoActions = ({
         );
         setTodos(syncedTodos);
         saveToLocalStorage(LOCAL_STORAGE_KEY, syncedTodos);
-        return; // Выходим, если успешно синхронизировали
+        return;
       } catch (error) {
         console.error("Ошибка добавления:", error);
       }
@@ -63,13 +65,12 @@ export const useTodoActions = ({
     if (isOnline) {
       try {
         await updateTodo(id, updatedTodo);
-        return; // Успешное обновление — выходим
+        return;
       } catch (error) {
         console.error("Ошибка обновления:", error);
       }
     }
 
-    // Сюда попадём только если offline или была ошибка
     addPendingChange({
       type: "UPDATE",
       id,
@@ -92,13 +93,12 @@ export const useTodoActions = ({
     if (isOnline) {
       try {
         await updateTodo(id, { completed: updatedTodo.completed });
-        return; // Успешное обновление — выходим
+        return;
       } catch (error) {
         console.error("Ошибка обновления:", error);
       }
     }
 
-    // Сюда попадём только если offline или была ошибка
     addPendingChange({
       type: "TOGGLE",
       id,
@@ -109,21 +109,18 @@ export const useTodoActions = ({
   const handleDelete = async (id) => {
     const updatedTodos = todos.filter((todo) => todo.id !== id);
     setTodos(updatedTodos);
-    saveToLocalStorage(LOCAL_STORAGE_KEY, updatedTodos);
 
     if (isOnline) {
       try {
         await deleteTodo(id);
-        return; // Успех — выходим
+        return;
       } catch (error) {
         console.error("Ошибка удаления:", error);
-        // Возвращаем предыдущее состояние (если нужно)
         setTodos(todos);
-        saveToLocalStorage(LOCAL_STORAGE_KEY, todos);
+        saveToLocalStorage(todos);
       }
     }
 
-    // Сюда попадём только если offline или была ошибка
     addPendingChange({
       type: "DELETE",
       id,
@@ -139,9 +136,8 @@ export const useTodoActions = ({
 
   const confirmDeleteCompleted = async () => {
     const completedTodos = todos.filter((t) => t.completed);
-    const updatedTodos = todos.filter((todo) => !todo.completed);
+    const updatedTodos = todos.filter((t) => !t.completed);
 
-    // Сразу обновляем локальное состояние
     setTodos(updatedTodos);
     saveToLocalStorage(LOCAL_STORAGE_KEY, updatedTodos);
 
@@ -149,7 +145,6 @@ export const useTodoActions = ({
       const successfullyDeleted = [];
       const failedToDelete = [];
 
-      // Пытаемся удалить все завершенные задачи
       await Promise.all(
         completedTodos.map(async (todo) => {
           try {
@@ -161,8 +156,6 @@ export const useTodoActions = ({
           }
         })
       );
-
-      // Восстанавливаем только те задачи, которые не удалось удалить
       if (failedToDelete.length > 0) {
         const restoredTodos = [...updatedTodos, ...failedToDelete];
         setTodos(restoredTodos);
@@ -170,8 +163,6 @@ export const useTodoActions = ({
       }
     }
 
-    // Добавляем pending-изменения для всех завершенных задач
-    // (в оффлайн-режиме или для тех, что не удалились онлайн)
     completedTodos.forEach((todo) => {
       addPendingChange({
         type: "DELETE",
@@ -188,9 +179,8 @@ export const useTodoActions = ({
     const activeIndex = todos.findIndex((todo) => todo.id === activeId);
     const overIndex = todos.findIndex((todo) => todo.id === overId);
 
-    if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+    if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex)
       return;
-    }
 
     const newTodos = [...todos];
     const [movedTodo] = newTodos.splice(activeIndex, 1);
@@ -209,16 +199,14 @@ export const useTodoActions = ({
         await Promise.all(
           updatedTodos.map((todo) => updateTodo(todo.id, { order: todo.order }))
         );
-        return; // Успех — выходим
+        return;
       } catch (error) {
-        console.error("Ошибка изменения порядка:", error);
-        // Возвращаем предыдущий порядок
+        console.error("Ошибка изменения порядка", error);
         setTodos(todos);
         saveToLocalStorage(LOCAL_STORAGE_KEY, todos);
       }
     }
 
-    // Сюда попадём только если offline или была ошибка
     updatedTodos.forEach((todo) => {
       addPendingChange({
         type: "UPDATE",
