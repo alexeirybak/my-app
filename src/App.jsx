@@ -6,7 +6,7 @@ import AuthLayout from "./pages/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegPage from "./pages/RegPage";
 import Navbar from "./components/Navbar";
-import NavbarWithNavLink from "./components/NavbarWithNavLink";
+import NavigationControls from "./components/NavigationControls";
 
 export const AppRoutes = {
   HOME: "/",
@@ -21,7 +21,7 @@ function App() {
   return (
     <>
       <Navbar />
-      <NavbarWithNavLink />
+      <NavigationControls />
       <Routes>
         <Route index element={<HomePage />} />
         <Route path={AppRoutes.ABOUT} element={<AboutPage />} />
