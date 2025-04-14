@@ -5,6 +5,8 @@ import NotFoundPage from "./pages/NotFoundPage";
 import AuthLayout from "./pages/AuthLayout";
 import LoginPage from "./pages/LoginPage";
 import RegPage from "./pages/RegPage";
+import Navbar from "./components/Navbar";
+import NavbarWithNavLink from "./components/NavbarWithNavLink";
 
 export const AppRoutes = {
   HOME: "/",
@@ -17,19 +19,23 @@ export const AppRoutes = {
 
 function App() {
   return (
-    <Routes>
-      <Route index element={<HomePage />} />
-      <Route path={AppRoutes.ABOUT} element={<AboutPage />} />
-      <Route path={AppRoutes.AUTH} element={<AuthLayout />} />
+    <>
+      <Navbar />
+      <NavbarWithNavLink />
+      <Routes>
+        <Route index element={<HomePage />} />
+        <Route path={AppRoutes.ABOUT} element={<AboutPage />} />
+        <Route path={AppRoutes.AUTH} element={<AuthLayout />} />
 
-      <Route
-        path={`${AppRoutes.AUTH}/${AppRoutes.LOGIN}`}
-        element={<LoginPage />}
-      />
-      <Route path="/auth/register" element={<RegPage />} />
+        <Route
+          path={`${AppRoutes.AUTH}/${AppRoutes.LOGIN}`}
+          element={<LoginPage />}
+        />
+        <Route path="/auth/register" element={<RegPage />} />
 
-      <Route path={AppRoutes.NOT_FOUND} element={<NotFoundPage />} />
-    </Routes>
+        <Route path={AppRoutes.NOT_FOUND} element={<NotFoundPage />} />
+      </Routes>
+    </>
   );
 }
 
