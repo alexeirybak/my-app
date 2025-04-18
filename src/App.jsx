@@ -1,29 +1,36 @@
-import { BrowserRouter, Routes, Route } from "react-router";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Login from "./pages/Login";
-import NotFoundPage from "./pages/NotFoundPage";
+import { Routes, Route } from "react-router";
+import HomePage from "./pages/HomePage";
+import AboutPage from "./pages/AboutPage.jsx";
 import Contacts from "./pages/Contacts";
-import { useState } from "react";
-import PrivateRoute from "./components/PrivateRoute";
+import AuthLayout from "./pages/AuthLayout.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
+import RegPage from "./pages/RegPage.jsx";
+import NotFoundPage from "./pages/NotFoundPage";
+import Navbar from "./components/NavBar.jsx";
+import Breadcrumbs from "./components/Breadcrumbs.jsx";
+import PageTitleUpdater from "./components/PageTitleUpdater.js";
+import LargePage from "./components/LargePage.jsx";
 
 function App() {
-  const [isAuth, setIsAuth] = useState(false);
-
   return (
-    <BrowserRouter>
+    <>
+      <Navbar />
+      <Breadcrumbs />
+      <PageTitleUpdater />
       <Routes>
-        <Route path={"/"} element={<Home />} />
+        <Route index element={<HomePage />} />
+        <Route path="about" element={<AboutPage />} />
+        <Route path="contacts" element={<Contacts />} />
 
-        <Route element={<PrivateRoute isAuth={isAuth} />}>
-          <Route path={"/about"} element={<About />} />
-          <Route path={"/contacts"} element={<Contacts />} />
+        <Route path="auth" element={<AuthLayout />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegPage />} />
         </Route>
 
-        <Route path={"/login"} element={<Login setIsAuth={setIsAuth} />} />
-        <Route path={"*"} element={<NotFoundPage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </BrowserRouter>
+      <LargePage />
+    </>
   );
 }
 
