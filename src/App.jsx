@@ -7,8 +7,8 @@ function App() {
     <>
       <div className="text-5xl">
         <Counter />
-        <CounterUser />
-        <CounterChanger />
+        {/* <CounterUser />
+        <CounterChanger /> */}
       </div>
     </>
   );
