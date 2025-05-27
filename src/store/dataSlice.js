@@ -4,6 +4,7 @@ const initialState = {
   posts: [],
   isLoading: false,
   error: null,
+  user: true,
 };
 
 const dataSlice = createSlice({
@@ -24,15 +25,38 @@ const dataSlice = createSlice({
       })
       .addCase(fetchData.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message;
+        state.error = action.payload;
       });
   },
 });
 
-export const fetchData = createAsyncThunk("allData/fetchData", async (url) => {
-  const response = await fetch(url);
-  const data = await response.json();
-  return data;
-});
+export const fetchData = createAsyncThunk(
+  "allData/fetchData",
+  async (url, { signal, rejectWithValue }) => {
+    try {
+      const response = await fetch(url, { signal });
+      if (!response.ok) {
+        return rejectWithValue({
+          message: `Ошибка ${response.status}`,
+          status: response.status,
+        });
+      }
+      return await response.json();
+    } catch (error) {
+      return rejectWithValue({
+        message:
+          error.name === "AbortError" ? "Запрос отменен" : "Ошибка подключения",
+        status: error.name === "AbortError" ? 0 : "NETWORK_ERROR",
+      });
+    }
+  },
+  {
+    condition: (_, { getState }) => {
+      const { user, isLoading, posts } = getState().data;
+      if (!user || isLoading || posts.length > 0) return false;
+      return true;
+    },
+  }
+);
 
 export const dataReducer = dataSlice.reducer;

@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { fetchData } from "./store/dataSlice";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function App() {
   const [showPosts, setShowPosts] = useState();
@@ -8,15 +8,25 @@ export function App() {
   // const isLoading = useSelector((state) => state.data.isLoading);
   // const error = useSelector((state) => state.data.error);
 
+  const fetchPromise = useRef();
+
   const dispatch = useDispatch();
 
   const fetchPosts = () => {
-    dispatch(fetchData("https://jsonplaceholder.typicode.com/posts"));
+    fetchPromise.current = dispatch(
+      fetchData("https://jsonplaceholder.typicode.com/posts")
+    );
   };
 
   const handleShowPosts = () => {
     if (posts.length > 0) {
       setShowPosts(true);
+    }
+  };
+
+  const handleCancelFetch = () => {
+    if (fetchPromise.current) {
+      fetchPromise.current.abort();
     }
   };
 
@@ -26,10 +36,19 @@ export function App() {
         {isLoading ? "Загрузка..." : "Получить посты"}
       </button>
       <button onClick={handleShowPosts}>Показать посты</button>
-      {error && <p className="text-red-500">Ошибка: {error}</p>}
+      {isLoading && (
+        <button onClick={handleCancelFetch}>Отменить запрос</button>
+      )}
+      {error && (
+        <div>
+          {error.status === 404 && <p>Данные не найдены</p>}
+          {error.status === 0 && ""}
+          {error.status === "NETWORK_ERROR" && <p>Нет подключения</p>}
+        </div>
+      )}
       {showPosts && (
         <div>
-          <h3>Списокк постов</h3>
+          <h3>Список постов</h3>
           <ul>
             {posts.map((post) => (
               <li key={post.id}>
