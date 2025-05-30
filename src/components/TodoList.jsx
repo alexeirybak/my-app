@@ -1,10 +1,17 @@
 import { useDispatch, useSelector } from "react-redux";
-import { deleteTodo, toggleTodo } from "../store/actions";
+import { deleteTodo, toggleTodo, fetchTodos } from "../store/actions";
+import { useEffect } from "react";
 
 const TodoList = () => {
-  const { todos } = useSelector((state) => state.todos);
+  const { todos, loading, error } = useSelector((state) => state.todos);
   const dispatch = useDispatch();
 
+  useEffect(() => {
+    dispatch(fetchTodos());
+  }, [dispatch]);
+
+  if (loading) return <div>Загрузка...</div>;
+  if (error) return <div>Ошибка: {error}</div>;
 
   return (
     <>
@@ -14,7 +21,7 @@ const TodoList = () => {
             <input
               type="checkbox"
               checked={todo.completed}
-              onChange={() => dispatch(toggleTodo(todo.id, !todo.completed))}
+              onChange={() => dispatch(toggleTodo(todo.id))}
             />
             <span>{todo.text}</span>
             <button
