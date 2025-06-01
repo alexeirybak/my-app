@@ -4,15 +4,29 @@ import {
   useCreateTodoMutation,
   useDeleteTodoMutation,
   useGetTodosQuery,
+  useLazyGetTodosQuery,
   useUpdateTodoMutation,
+  usePrefetch,
 } from "./services/api";
 
 export function App() {
   const [newTodo, setNewTodo] = useState("");
   const [editingTodo, setEditingTodo] = useState(null);
   const [editTodo, setEditTodo] = useState("");
+  const [hoveredTodoId, setHoveredTodoId] = useState(null);
 
-  const { data: todos, isLoading, error, refetch } = useGetTodosQuery();
+  const prefetchTodo = usePrefetch("getTodoById");
+
+  const [fetchTodosLazy, { data: todos, isLoading, error }] =
+    useLazyGetTodosQuery();
+
+    undefined, {
+      // pollingInterval: 10000,
+      // skipPollingIfUnfocused: true,
+      // keepUnusedDataFor: 10,
+      // refetchOnReconnect: true,
+      // refetchOnFocus: true,
+    }
   const [updateTodo, { isLoading: isUpdating, error: updateError }] =
     useUpdateTodoMutation();
 
@@ -33,7 +47,7 @@ export function App() {
     deleteError,
   });
 
-  if (statusMessage) return <div>{statusMessage}</div>;
+  //if (statusMessage) return <div>{statusMessage}</div>;
 
   const handleToggleComplete = async (todo) => {
     await updateTodo({
@@ -71,11 +85,20 @@ export function App() {
     e.preventDefault();
 
     if (!editTodo.trim()) return;
-    await updateTodo({
-      id: editingTodo.id,
-      title: editTodo,
-    });
-    setEditingTodo(null);
+
+    try {
+      await updateTodo({
+        id: editingTodo.id,
+        title: editTodo,
+      }).unwrap();
+      setEditingTodo(null);
+    } catch (error) {
+      console.error("Ошибка при обновлении:", error);
+      alert("Ошибка обновления");
+    } finally {
+      setEditingTodo(null);
+      setEditTodo("");
+    }
   };
 
   return (
@@ -104,10 +127,25 @@ export function App() {
 
       {/*Список задач*/}
 
+      <button onClick={() => fetchTodosLazy()}>Обновить задачи</button>
+
       <ul className="space-y-2">
         {todos &&
           todos.map((todo) => (
-            <li key={todo.id}>
+            <li
+              key={todo.id}
+              onMouseEnter={() => {
+                setHoveredTodoId(todo.id);
+                prefetchTodo(todo.id);
+              }}
+              onMouseLeave={() => setHoveredTodoId(null)}
+              className="relative"
+            >
+              {hoveredTodoId === todo.id && (
+                <div className="absolute -top-2 -right-2 bg-gray-100 text-xs text-gray-600 px-2 py-1 rounded shadow">
+                  Создано: {new Date(todo.createdAt).toLocaleDateString()}
+                </div>
+              )}
               <div className="mb-2 flex items-center border-2 border-gray-400 p-2 rounded">
                 {editingTodo?.id === todo.id ? (
                   <div>

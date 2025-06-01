@@ -6,6 +6,9 @@ export const api = createApi({
     baseUrl: "https://67ed28164387d9117bbc7da1.mockapi.io/api/v1/",
   }),
   tagTypes: ["Todos"],
+  // refetchOnReconnect: true,
+  // refetchOnFocus: true,
+  //keepUnusedDataFor: 3600,
   endpoints: (builder) => ({
     getTodos: builder.query({
       query: () => "todos",
@@ -31,6 +34,21 @@ export const api = createApi({
         method: "PUT",
         body: rest,
       }),
+      async onQueryStarted({ id, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          api.util.updateQueryData("getTodos", undefined, (draft) => {
+            const todo = draft.find((todo) => todo.id === id);
+            if (todo) {
+              Object.assign(todo, patch);
+            }
+          })
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
       invalidatesTags: ["Todos"],
     }),
 
@@ -45,7 +63,9 @@ export const api = createApi({
 
 export const {
   useGetTodosQuery,
+  useLazyGetTodosQuery,
   useCreateTodoMutation,
   useUpdateTodoMutation,
   useDeleteTodoMutation,
+  usePrefetch,
 } = api;
