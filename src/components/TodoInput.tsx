@@ -3,12 +3,13 @@ import { todoStore } from "../store/todoStore";
 
 export default function TodoInput() {
   const [title, setTitle] = useState("");
+  const { addTodo } = todoStore;
 
   const add = () => {
     const text = title.trim();
     if (!text) return;
 
-    todoStore.addTodo(text);
+    addTodo(text);
     setTitle("");
   };
 

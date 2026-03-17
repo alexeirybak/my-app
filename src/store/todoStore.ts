@@ -2,7 +2,7 @@ import {
   action,
   autorun,
   computed,
-  configure,
+  makeAutoObservable,
   makeObservable,
   observable,
   reaction,
@@ -10,7 +10,7 @@ import {
   trace,
   when,
 } from "mobx";
-configure({ enforceActions: "always" });
+
 export type Todo = {
   id: number;
   title: string;
@@ -25,138 +25,126 @@ type ApiTodo = {
 
 export type Filter = "all" | "active" | "done";
 
-class TodoStore {
-  todos: Todo[] = [];
-  filter: Filter = "all";
-  loading: boolean = false;
-  error: string | null = null;
+function createTodoStore() {
+  const store = {
+    todos: [] as Todo[],
+    filter: "all" as Filter,
+    loading: false,
+    error: null as string | null,
 
-  constructor() {
-    makeObservable(this, {
-      todos: observable,
-      filter: observable,
-      loading: observable,
-      error: observable,
-      addTodo: action,
-      toggleTodo: action,
-      removeTodo: action,
-      setFilter: action,
-      loadTodos: action,
-      filteredTodos: computed,
-      completedCount: computed,
-      activeCount: computed,
-      progress: computed,
-    });
-    //makeAutoObservable(this);
+    addTodo: action((title: string) => {
+      store.todos.push({
+        id: Date.now(),
+        title,
+        done: false,
+      });
+    }),
 
-    autorun(() => {
-      localStorage.setItem("todos", JSON.stringify(this.todos));
-    });
+    toggleTodo: action((id: number) => {
+      const todo = store.todos.find((t) => t.id === id);
+      if (todo) {
+        todo.done = !todo.done;
+      }
+    }),
 
-    reaction(
-      () => this.todos.length,
-      (length) => {
-        console.log(
-          `Всего задач: ${length} (Выполнено: ${this.completedCount})`,
+    removeTodo: action((id: number) => {
+      store.todos = store.todos.filter((t) => t.id !== id);
+    }),
+
+    setFilter: action((filter: Filter) => {
+      store.filter = filter;
+    }),
+
+    loadTodos: action(async () => {
+      store.loading = true;
+      store.error = null;
+      try {
+        const res = await fetch(
+          "https://jsonplaceholder.typicode.com/todos?_limit=5",
         );
-      },
-    );
 
-    reaction(
-      () => this.filter,
-      (filter, previousFilter) => {
-        console.log(`Фильтр изменился: ${previousFilter} -> ${filter} `);
+        const data: ApiTodo[] = await res.json();
 
-        if (filter === "done") {
-          console.log("Пользователь смотрит выполненные задачи");
-        }
-      },
-    );
+        runInAction(() => {
+          store.todos = data.map((todo) => ({
+            id: todo.id,
+            title: todo.title,
+            done: todo.completed,
+          }));
+        });
+      } catch (error) {
+        runInAction(() => {
+          store.error = String(error);
+        });
+      } finally {
+        runInAction(() => {
+          store.loading = false;
+        });
+      }
+    }),
 
-    when(
-      () => this.completedCount === 5,
-      () => {
-        alert("Поздравляю! Вы выполнили 5 задач");
-        console.log("Поздравляю! Вы выполнили 5 задач");
-      },
-    );
-  }
+    get filteredTodos() {
+      trace();
+      if (store.filter === "active") {
+        return store.todos.filter((t) => !t.done);
+      }
+      if (store.filter === "done") {
+        return store.todos.filter((t) => t.done);
+      }
 
-  addTodo(title: string) {
-    this.todos.push({
-      id: Date.now(),
-      title,
-      done: false,
-    });
-  }
+      return store.todos;
+    },
 
-  toggleTodo(id: number) {
-    const todo = this.todos.find((t) => t.id === id);
-    if (todo) {
-      todo.done = !todo.done;
-    }
-  }
+    get completedCount() {
+      return store.todos.filter((t) => t.done).length;
+    },
 
-  removeTodo(id: number) {
-    this.todos = this.todos.filter((t) => t.id !== id);
-  }
+    get activeCount() {
+      return store.todos.filter((t) => !t.done).length;
+    },
 
-  setFilter(filter: Filter) {
-    this.filter = filter;
-  }
+    get progress() {
+      if (store.todos.length === 0) return 0;
+      return (store.completedCount / store.todos.length) * 100;
+    },
+  };
 
-  get filteredTodos() {
-    trace();
-    if (this.filter === "active") {
-      return this.todos.filter((t) => !t.done);
-    }
-    if (this.filter === "done") {
-      return this.todos.filter((t) => t.done);
-    }
+  makeAutoObservable(store);
 
-    return this.todos;
-  }
+  autorun(() => {
+    localStorage.setItem("todos", JSON.stringify(store.todos));
+  });
 
-  get completedCount() {
-    return this.todos.filter((t) => t.done).length;
-  }
-
-  get activeCount() {
-    return this.todos.filter((t) => !t.done).length;
-  }
-
-  get progress() {
-    if (this.todos.length === 0) return 0;
-    return (this.completedCount / this.todos.length) * 100;
-  }
-
-  async loadTodos() {
-    this.loading = true;
-    this.error = null;
-    try {
-      const res = await fetch(
-        "https://jsonplaceholder.typicode.com/todos?_limit=5",
+  reaction(
+    () => store.todos.length,
+    (length) => {
+      console.log(
+        `Всего задач: ${length} (Выполнено: ${store.completedCount})`,
       );
+    },
+  );
 
-      const data: ApiTodo[] = await res.json();
+  reaction(
+    () => store.filter,
+    (filter, previousFilter) => {
+      console.log(`Фильтр изменился: ${previousFilter} -> ${filter} `);
 
-      runInAction(() => {
-        this.todos = data.map((todo) => ({
-          id: todo.id,
-          title: todo.title,
-          done: todo.completed,
-        }));
-      });
-    } catch (error) {
-      runInAction(() => {
-        this.error = String(error);
-      });
-    } finally {
-      runInAction(() => {
-        this.loading = false;
-      });
-    }
-  }
+      if (filter === "done") {
+        console.log("Пользователь смотрит выполненные задачи");
+      }
+    },
+  );
+
+  when(
+    () => store.completedCount === 5,
+    () => {
+      alert("Поздравляю! Вы выполнили 5 задач");
+      console.log("Поздравляю! Вы выполнили 5 задач");
+    },
+  );
+
+  return store;
 }
 
-export const todoStore = new TodoStore();
+export const todoStore = createTodoStore();
+export type TodoStore = ReturnType<typeof createTodoStore>;

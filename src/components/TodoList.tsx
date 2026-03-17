@@ -3,25 +3,27 @@ import { todoStore } from "../store/todoStore";
 import TodoItem from "./TodoItem";
 
 const TodoList = observer(() => {
-  if (todoStore.loading) {
+  const { filteredTodos, loadTodos, loading, error } = todoStore;
+
+  if (loading) {
     return <p>Загрузка...</p>;
   }
 
-  if (todoStore.error) {
+  if (error) {
     return (
       <div style={{ color: "red" }}>
-        <p>Ошибка: {todoStore.error}</p>
-        <button onClick={() => todoStore.loadTodos()}>Попробовать снова</button>
+        <p>Ошибка: {error}</p>
+        <button onClick={() => loadTodos()}>Попробовать снова</button>
       </div>
     );
   }
 
-  if (todoStore.filteredTodos.length === 0) {
+  if (filteredTodos.length === 0) {
     return <p>Нет задач</p>;
   }
   return (
     <ul>
-      {todoStore.filteredTodos.map((todo) => (
+      {filteredTodos.map((todo) => (
         <TodoItem key={todo.id} todo={todo} />
       ))}
     </ul>

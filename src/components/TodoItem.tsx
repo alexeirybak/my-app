@@ -7,12 +7,13 @@ type Props = {
 };
 
 const TodoItem = observer(({ todo }: Props) => {
+  const { toggleTodo, removeTodo } = todoStore;
   return (
     <li>
       <input
         type="checkbox"
         checked={todo.done}
-        onChange={() => todoStore.toggleTodo(todo.id)}
+        onChange={() => toggleTodo(todo.id)}
       />
       <span
         style={{
@@ -21,7 +22,7 @@ const TodoItem = observer(({ todo }: Props) => {
       >
         {todo.title}
       </span>
-      <button onClick={() => todoStore.removeTodo(todo.id)}>&times;</button>
+      <button onClick={() => removeTodo(todo.id)}>&times;</button>
     </li>
   );
 });
