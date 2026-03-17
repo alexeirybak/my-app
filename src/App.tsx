@@ -5,25 +5,28 @@ import TodoList from "./components/TodoList";
 import TodoInput from "./components/TodoInput";
 
 const App = observer(() => {
+  const { completedCount, activeCount, progress, todos, loadTodos, setFilter } =
+    todoStore;
+
   useEffect(() => {
-    todoStore.loadTodos();
+    loadTodos();
   }, []);
 
   return (
     <div>
       <h1>MobX Todo</h1>
       <div>
-        <p>Выполнено: {todoStore.completedCount}</p>
-        <p>Активно: {todoStore.activeCount}</p>
-        <p>Всего: {todoStore.todos.length}</p>
-        <p>Прогресс: {todoStore.progress.toFixed(1)}</p>
+        <p>Выполнено: {completedCount}</p>
+        <p>Активно: {activeCount}</p>
+        <p>Всего: {todos.length}</p>
+        <p>Прогресс: {progress.toFixed(1)}</p>
       </div>
       <TodoInput />
-      <button onClick={todoStore.loadTodos}>Загрузить задачи</button>
+      <button onClick={loadTodos}>Загрузить задачи</button>
       <div>
-        <button onClick={() => todoStore.setFilter("all")}>Все</button>
-        <button onClick={() => todoStore.setFilter("active")}>Активные</button>
-        <button onClick={() => todoStore.setFilter("done")}>Выполненные</button>
+        <button onClick={() => setFilter("all")}>Все</button>
+        <button onClick={() => setFilter("active")}>Активные</button>
+        <button onClick={() => setFilter("done")}>Выполненные</button>
       </div>
       <TodoList />
     </div>
