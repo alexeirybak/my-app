@@ -1,67 +1,43 @@
-import { useMachine } from "@xstate/react";
-import { todosMachine } from "./machines/todoMachine";
-import { useState } from "react";
+import { Suspense } from 'react'
+import { TodoList } from './components/TodoList'
+import { CommentsList } from './components/CommentsList'
+import { UserProfile } from './components/UserProfile'
+import { TodoCard } from './components/TodoCard'
+import { ParallelQueries } from './components/ParallelQueries'
 
 function App() {
-  const [state, send] = useMachine(todosMachine);
-  const { todos, error, maxTodos, uiError } = state.context;
-  const [inputValue, setInputValue] = useState("");
-
-  const handleAddTodo = () => {
-    const newTodo = {
-      id: Date.now(),
-      text: inputValue,
-    };
-
-    send({ type: "ADD", todo: newTodo });
-    setInputValue("");
-  };
-
   return (
-    <div>
-      <h1>TODO List</h1>
+    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
+      <h1>TanStack Query - Полный урок</h1>
+      
+      <section style={{ marginBottom: '3rem', borderBottom: '2px solid #eee', paddingBottom: '2rem' }}>
+        <h2>1. Базовый запрос (TodoList)</h2>
+        <TodoList />
+      </section>
 
-      <div>
-        Задач: {todos.length} из {maxTodos}
-      </div>
-      {error && (
-        <div>
-          <p style={{ color: "red" }}>{error}</p>
-        </div>
-      )}
-      {uiError && (
-        <div>
-          <p style={{ color: "red" }}>{uiError}</p>
-          <button onClick={() => send({ type: "CLEAR_UI_ERROR" })}>
-            Очистить ошибку
-          </button>
-        </div>
-      )}
-      <div>
-        <input
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Введите задачу"
-        />
-        <button onClick={handleAddTodo}>Добавить</button>
-      </div>
+      <section style={{ marginBottom: '3rem', borderBottom: '2px solid #eee', paddingBottom: '2rem' }}>
+        <h2>2. Динамический ключ (Comments)</h2>
+        <CommentsList />
+      </section>
 
-      <ul>
-        {todos.map((todo) => (
-          <li key={todo.id}>
-            <span>{todo.text}</span>
-            <button onClick={() => send({ type: "DELETE", id: todo.id })}>
-              Удалить
-            </button>
-          </li>
-        ))}
-      </ul>
-      <div>
-        <button onClick={() => send({ type: "FETCH" })}>Загрузить</button>
-        <button onClick={() => send({ type: "RETRY" })}>Повторить</button>
-      </div>
+      <section style={{ marginBottom: '3rem', borderBottom: '2px solid #eee', paddingBottom: '2rem' }}>
+        <h2>3. Зависимые запросы (UserProfile)</h2>
+        <UserProfile />
+      </section>
+
+      <section style={{ marginBottom: '3rem', borderBottom: '2px solid #eee', paddingBottom: '2rem' }}>
+        <h2>4. Suspense (TodoCard)</h2>
+        <Suspense fallback={<p>Загрузка карточки...</p>}>
+          <TodoCard />
+        </Suspense>
+      </section>
+
+      <section style={{ marginBottom: '3rem' }}>
+        <h2>5. Параллельные запросы</h2>
+        <ParallelQueries />
+      </section>
     </div>
-  );
+  )
 }
-export default App;
+
+export default App
